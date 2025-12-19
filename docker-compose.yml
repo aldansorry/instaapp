@@ -10,6 +10,8 @@ services:
       - "8000:8000"
     volumes:
       - ./backend/storage:/var/www/storage
+    depends_on:
+      - db
 
   frontend:
     build:
@@ -20,3 +22,18 @@ services:
       - "5173:5173"
     depends_on:
       - backend
+
+  db:
+    image: postgres:14
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: instaapp
+      POSTGRES_USER: instaapp
+      POSTGRES_PASSWORD: instaapp_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
