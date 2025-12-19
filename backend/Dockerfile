@@ -24,6 +24,7 @@ ENV VIEW_COMPILED_PATH=/var/www/storage/framework/views
 RUN composer install --no-scripts
 
 RUN php artisan package:discover --ansi
+RUN php artisan storage:link
 
 EXPOSE 8000
 

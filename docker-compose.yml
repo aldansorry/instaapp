@@ -8,6 +8,8 @@ services:
       - ./backend/.env
     ports:
       - "8000:8000"
+    volumes:
+      - ./backend/storage:/var/www/storage
 
   frontend:
     build:
