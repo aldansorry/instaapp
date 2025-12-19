@@ -1,119 +1,88 @@
 <script setup>
-import { ref } from 'vue'
-import {
-    HeartIcon,
-    ChatBubbleLeftIcon,
-} from '@heroicons/vue/24/solid'
+import { computed, onMounted, ref } from 'vue'
+import HomeHeader from '@/components/HomeHeader.vue'
+import AuthModal from '@/components/AuthModal.vue'
+import { backendOrigin } from '@/lib/api'
+import { useAuthStore } from '@/stores/auth'
+import { useNotify } from '@/composables/useNotify'
+const authStore = useAuthStore()
+const { notify } = useNotify();
 
-const showComments = ref(false)
-const liked = ref(false)
+const showAuthModal = ref(false)
+const authMode = ref('login')
+const authLoading = ref(false)
+const authError = ref('')
+
+const isAuthenticated = computed(() => authStore.isAuthenticated)
+const user = computed(() => authStore.user)
+
+const openAuth = (mode = 'login') => {
+  authMode.value = mode
+  showAuthModal.value = true
+}
+
+const closeAuth = () => {
+  showAuthModal.value = false
+  authError.value = ''
+}
+
+const submitAuth = async ({ mode, form }) => {
+  authError.value = ''
+  authLoading.value = true
+  try {
+    if (mode === 'login') {
+      await authStore.login({ email: form.email, password: form.password })
+    } else {
+      await authStore.register({ name: form.name, email: form.email, password: form.password })
+    }
+    closeAuth()
+    notify('success', `${mode == 'login' ? 'Login' : 'Register'} Success`);
+  } catch (err) {
+    authError.value =
+      err?.response?.data?.message ||
+      err?.response?.data ||
+      err.message ||
+      `${mode} gagal.`
+  } finally {
+    authLoading.value = false
+  }
+}
+
+const requireAuth = () => {
+  if (!isAuthenticated.value) {
+    openAuth('login')
+    return false
+  }
+  return true
+}
+
+const logout = async () => {
+  await authStore.logout()
+  notify('success', `Logged Out`);
+}
+
+onMounted(async () => {
+  await authStore.init()
+})
 </script>
 
 <template>
-    <main class="">
-        <div class="max-w-lg min-h-screen mx-auto p-2 bg-white">
-            <h1 class="text-xl font-semibold tracking-wide text-slate-500">
-                Insta
-                <span class="text-emerald-500 font-bold">App</span>
-            </h1>
-            <div class="mt-8 space-y-6">
-
-                <!-- Post Card -->
-                <article class="
-      bg-white rounded-2xl shadow-sm border border-slate-200
-      overflow-hidden
-    ">
-                    <!-- Header -->
-                    <div class="flex items-center justify-between px-5 py-4">
-                        <div>
-                            <p class="font-semibold text-slate-900">Budi Santoso</p>
-                            <p class="text-sm text-slate-500">12 Mei 2025 • 10:32</p>
-                        </div>
-                    </div>
-
-                    <!-- Image -->
-                    <div class="w-full max-h-[360px] overflow-hidden bg-slate-100">
-                        <img src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee" alt="Post Image"
-                            class="w-full object-cover" />
-                    </div>
-
-                    <!-- Content -->
-                    <div class="px-5 py-4 space-y-4">
-                        <p class="text-slate-800 leading-relaxed">
-                            Hari ini belajar Vue + Tailwind. UI jadi jauh lebih rapi dan enak dilihat
-                        </p>
-
-                        <!-- Actions -->
-                        <div class="flex items-center gap-4 text-sm">
-                            <!-- Like -->
-                            <button 
-                                class="inline-flex items-center gap-2 font-medium transition"
-                                @click="liked = !liked">
-                                <HeartIcon class="h-5 w-5" :class="liked ? 'text-red-500' : 'text-slate-400'" />
-                                <span :class="liked ? 'text-red-600' : 'text-slate-500'">
-                                    {{ liked ? 'Unlike' : 'Like' }}
-                                </span>
-                            </button>
-                            <span class="text-slate-500">
-                                12 likes
-                            </span>
-
-                            <!-- Comment toggle -->
-                            <button
-                                class="inline-flex items-center gap-2 text-slate-500 hover:text-slate-700 transition"
-                                @click="showComments = !showComments">
-                                <ChatBubbleLeftIcon class="h-5 w-5" />
-                                <span>
-                                    {{ showComments ? 'Tutup komentar' : 'Lihat komentar' }}
-                                </span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Comments -->
-                    <!-- Comment Section -->
-                    <div v-if="showComments" class="border-t border-slate-200">
-
-                        <!-- Comment List -->
-                        <div class="
-      max-h-40 overflow-y-auto
-      px-5 py-4 space-y-3
-      bg-slate-50
-    ">
-                            <div class="rounded-lg bg-white px-3 py-2 text-sm">
-                                <p class="font-semibold text-slate-900">Ani</p>
-                                <p class="text-slate-700">Keren banget 🔥</p>
-                            </div>
-
-                            <div class="rounded-lg bg-white px-3 py-2 text-sm">
-                                <p class="font-semibold text-slate-900">Rudi</p>
-                                <p class="text-slate-700">Mantap!</p>
-                            </div>
-                        </div>
-
-                        <!-- Comment Form -->
-                        <div class="px-5 py-4 flex items-center gap-3 bg-white">
-                            <input type="text" placeholder="Tulis komentar..." class="
-        flex-1 rounded-xl border border-slate-300
-        px-4 py-2 text-sm
-        focus:outline-none focus:ring-2 focus:ring-emerald-400/40
-      " />
-                            <button class="
-        rounded-xl bg-emerald-500
-        px-4 py-2 text-sm font-semibold text-white
-        hover:bg-emerald-600
-        transition
-      ">
-                                Kirim
-                            </button>
-                        </div>
-
-                    </div>
-
-                </article>
-
-            </div>
-
-        </div>
-    </main>
+  <main class="max-w-lg min-h-screen mx-auto p-3 bg-white">
+      <HomeHeader
+        :user="user"
+        :loading="authStore.loading"
+        :is-authenticated="isAuthenticated"
+        @login="openAuth('login')"
+        @logout="logout"
+      />
+  </main>
+  <AuthModal
+    :show="showAuthModal"
+    :mode="authMode"
+    :loading="authLoading"
+    :error="authError"
+    @close="closeAuth"
+    @change-mode="authMode = $event"
+    @submit="submitAuth"
+  />
 </template>
