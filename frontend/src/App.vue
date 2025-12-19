@@ -1,6 +1,7 @@
 <script setup>
+import { RouterView } from 'vue-router'
 </script>
 
 <template>
-  <h1 class="text-red-500">Test Tailwindcss</h1>
+  <RouterView />
 </template>
