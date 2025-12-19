@@ -22,6 +22,7 @@ const form = reactive({
 watch(
   () => props.mode,
   (mode) => {
+    document.title = `${mode == 'login' ? 'Login' : 'Register'} - InstaApp`;
     if (mode === 'login') {
       form.name = ''
     }
@@ -31,9 +32,11 @@ watch(
 const submit = () => {
   emit('submit', { mode: props.mode, form: { ...form } })
   
-  form.name = '';
-  form.email = '';
-  form.password = '';
+  if (props.mode === 'login') {
+    form.name = '';
+    form.email = '';
+    form.password = '';
+  }
 }
 </script>
 
@@ -41,7 +44,6 @@ const submit = () => {
   <div
     v-if="show"
     class="fixed inset-0 bg-emerald-50/70 backdrop-blur-sm flex items-center justify-center z-50 px-4"
-    @click.self="$emit('close')"
   >
     <div class="glass-card w-full max-w-md p-6 space-y-4">
       <div class="flex items-center gap-2 bg-emerald-50 border border-emerald-100 rounded-full p-1 text-sm">

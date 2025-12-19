@@ -65,6 +65,10 @@ class PostController extends Controller
 
     public function update(Request $request, Post $post)
     {
+        if ($post->user_id !== auth()->id()) {
+            abort(403, 'Permission Required.');
+        }
+
         $data = $request->validate([
             'content' => 'required|string|max:2000',
             'image'   => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
@@ -109,6 +113,10 @@ class PostController extends Controller
 
     public function destroy(Post $post)
     {
+        if ($post->user_id !== auth()->id()) {
+            abort(403, 'Permission Required.');
+        }
+
         DB::beginTransaction();
 
         try {
@@ -178,6 +186,14 @@ class PostController extends Controller
 
     public function deleteComment(Post $post, Comment $comment)
     {
+        if ($comment->post_id !== $post->id) {
+            abort(404);
+        }
+
+        if ($comment->user_id !== auth()->id()) {
+            abort(403, 'Permission Required.');
+        }
+
         $comment->delete();
 
         return response()->json(['message' => 'Comment deleted']);
