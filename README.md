@@ -34,7 +34,9 @@ Panduan instalasi backend Laravel + frontend Vite.
    - `php artisan jwt:secret`
 5. Migrasi database:
    - `php artisan migrate`
-6. Jalankan server dev:
+6. Symlink Storage:
+   - `php artisan storage:link`
+7. Jalankan server dev:
    - `php artisan serve --host=0.0.0.0 --port=8000`
 
 ### Frontend
